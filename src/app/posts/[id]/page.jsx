@@ -60,7 +60,7 @@ export default async function SinglePostPage({ params }) {
               <div className="absolute -top-3 -left-3 text-2xl">✨</div>
               <h3 className="text-sm font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-2">AI Generated Summary</h3>
               <p className="text-gray-800 dark:text-gray-200 text-lg leading-relaxed font-medium italic">
-                "{post.summary}"
+                &quot;{post.summary}&quot;
               </p>
             </div>
           )}
@@ -77,7 +77,6 @@ export default async function SinglePostPage({ params }) {
       <div className="mt-16 border-t pt-16">
         <h2 className="text-2xl font-bold mb-4">Comments</h2>
         <div className="p-8 text-center bg-gray-50 dark:bg-gray-900 border border-dashed rounded-2xl text-gray-500">
-          Comments section will be implemented in Step 12!
         </div>
       </div>
     </main>

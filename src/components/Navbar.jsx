@@ -9,17 +9,17 @@ export default async function Navbar() {
     <nav className="border-b bg-white dark:bg-gray-950 dark:border-gray-800">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          
+
           <div className="flex items-center gap-8">
             <Link href="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
               Hivon Blog
             </Link>
-            
+
             <div className="hidden sm:flex md:space-x-4">
               <Link href="/" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                 Articles
               </Link>
-              
+
               {/* Conditional Nav Links Based on Role */}
               {user && (role === 'author' || role === 'admin') && (
                 <>

@@ -29,20 +29,20 @@ export default async function Home({ searchParams }) {
     <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-12 gap-6">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-2">Latest from Hivon</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">Discover insights, tutorials, and updates.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-2 text-gradient">Latest from Hivon</h1>
+          <p className="text-lg text-gray-500 font-medium">Discover insights, tutorials, and updates.</p>
         </div>
 
         {/* Search Bar */}
-        <form className="w-full md:w-auto flex items-center bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+        <form className="w-full md:w-auto flex items-center glass border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all shadow-sm">
           <input 
             type="text" 
             name="q" 
             defaultValue={search} 
             placeholder="Search articles..." 
-            className="px-4 py-2 bg-transparent outline-none w-full md:w-64 dark:text-white"
+            className="px-6 py-3 bg-transparent outline-none w-full md:w-72 dark:text-white font-medium"
           />
-          <button type="submit" className="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium border-l border-gray-200 dark:border-gray-800">
+          <button type="submit" className="px-6 py-3 bg-blue-600/10 text-blue-600 hover:bg-blue-600 hover:text-white font-bold border-l border-gray-200 dark:border-gray-800 transition-all">
             Search
           </button>
         </form>
@@ -53,7 +53,7 @@ export default async function Home({ searchParams }) {
       ) : posts && posts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {posts.map((post) => (
-            <Link href={`/posts/${post.id}`} key={post.id} className="group flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <Link href={`/posts/${post.id}`} key={post.id} className="group flex flex-col bg-card border border-border rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover-lift active:scale-[0.98]">
               <div className="aspect-video w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
                 {post.image_url ? (
                   <img src={post.image_url} alt={post.title} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />

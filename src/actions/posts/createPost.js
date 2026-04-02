@@ -7,7 +7,7 @@ async function generateSummary(body) {
   const apiKey = process.env.GROQ_API_KEY?.trim();
 
   if (!apiKey) {
-    console.error('DEBUG [AI Summary]: GROQ_API_KEY is not set in environment variables.');
+    console.error('DEBUG [AI Summary]: GROQ_API_KEY is missing from process.env. Please check your .env.local file.');
     return null;
   }
 
@@ -26,7 +26,7 @@ async function generateSummary(body) {
           {
             role: 'system',
             content:
-              'You are an expert copywriter. Write a concise, engaging summary of the following blog post. Keep it to 1-2 sentences.',
+              'You are an expert copywriter. Write a detailed, engaging summary of the following blog post. The summary must be approximately 200 words in length.',
           },
           {
             role: 'user',
@@ -34,7 +34,7 @@ async function generateSummary(body) {
           },
         ],
         temperature: 0.7,
-        max_tokens: 256,
+        max_tokens: 512,
       }),
       cache: 'no-store',
     });
@@ -51,12 +51,8 @@ async function generateSummary(body) {
     }
 
     if (!response.ok) {
-      console.error('DEBUG [AI Summary]: Groq API request failed.', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData: json
-      });
-      return null;
+      console.error('DEBUG [AI Summary]: HTTP ERROR', response.status);
+      return `AI Summary Error: HTTP ${response.status}`;
     }
 
     const generatedSummary = json?.choices?.[0]?.message?.content?.trim();

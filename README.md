@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hivon Blog - AI Powered Blogging Platform
 
-## Getting Started
+An advanced, full-stack blogging platform built for the **Hivon Automations Internship Assignment**. This platform features role-based access control, automated AI summaries, and a modern design system.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+-   **AI Power:** Automatic ~200-word summaries generated for every new article using **Groq (Llama 3)**.
+-   **Role-Based Access Control (RBAC):**
+    -   **Viewer:** Can read posts, view summaries, and comment.
+    -   **Author:** Can create and edit their *own* articles.
+    -   **Admin:** Full platform control (edit and delete *any* post or comment).
+-   **Security:** Server-side ownership verification for every update/delete operation.
+-   **Core Platform:** 
+    -   Search & Pagination on Home Page.
+    -   Dynamic Commenting System.
+    -   Central Dashboard for editing and article management.
+-   **Design:** Premium Glassmorphism UI with Dark Mode support.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠 Tech Stack
 
-## Learn More
+-   **Frontend/Backend:** Next.js (App Router)
+-   **Authentication:** Supabase Auth
+-   **Database:** Supabase (Postgres)
+-   **AI Engine:** Groq API (Llama 3) for summaries.
+-   **Styling:** Tailwind CSS (Modern Vanilla Config)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📦 Local Setup Instructions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1.  **Clone the Repository:**
+    ```bash
+    git clone [your-repo-url]
+    cd hivon-blog
+    ```
 
-## Deploy on Vercel
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3.  **Configure Environment Variables:**
+    Create a `.env.local` file and add:
+    ```env
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+    GROQ_API_KEY=your_groq_api_key
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4.  **Run Development Server:**
+    ```bash
+    npm run dev
+    ```
+    *Note: The project uses the `--turbo` flag for maximum performance on macOS.*
+
+---
+
+## 💡 Technical Decisions & Submission Requirements
+
+### 1. AI Tool Usage (Antigravity)
+-   **Tool Used:** **Antigravity AI (Agentic Assistant)**.
+-   **Why I chose it:** I selected Antigravity because it allows for rapid, secure iteration of full-stack code and can handle complex database relationships (Supabase) while enforcing security patterns without manual oversight. It helped troubleshoot complex Next.js caching issues in real-time.
+
+### 2. Implementation Logic
+-   **Authentication Flow:** Used a custom `requireAuthorOrAdmin` utility that checks roles on the server side *before* any action is executed.
+-   **Post Creation Logic:** When a post is saved, the body is sent to the Groq API. If the API fails, the post is still saved, but a "failed" notice is stored to prevent user data loss while ensuring the UI doesn't crash.
+-   **SOLID Principles:** The project follows strict **Single Responsibility** (separate action files) and **Dependency Inversion** (Supabase client abstraction).
+
+### 3. Key Bug Resolution: The "Mac Lag" Issue
+-   **The Problem:** During development on macOS, standard `next dev` caused 100% CPU spikes and typing lag in the terminal.
+-   **The Fix:** I migrated the local development environment to **Next.js Turbopack** (`--turbo`) and optimized Node memory settings (`--max-old-space-size`). This completely stabilized the UI for smooth development.
+
+### 4. Cost Optimization (AI Integration)
+-   **Token Reduction Strategies:** Summaries are generated **ONLY ONCE** at the time of creation and stored permanently in the database. 
+-   This avoids repeated API costs every time a reader visits the post page and significantly reduces user-perceived latency.
+
+---
+
+## 🧪 Database Schema
+The database includes the following tables enforced by the `supabase-schema.sql`:
+-   **Users:** `id`, `name`, `email`, `role`.
+-   **Posts:** `id`, `title`, `body`, `image_url`, `author_id`, `summary`.
+-   **Comments:** `id`, `post_id`, `user_id`, `comment_text`.
+
+---
+
+**Developed & Designed for Hivon Automations LLP.**

@@ -5,7 +5,11 @@ import { requireAuth } from '@/utils/auth';
 import { revalidatePath } from 'next/cache';
 
 export async function addCommentAction(postId, commentText) {
-  const { user } = await requireAuth();
+  const { user, role } = await requireAuth();
+  
+  if (!role) {
+    throw new Error('You must have a valid account to comment.');
+  }
   
   if (!commentText || commentText.trim().length === 0) {
     throw new Error('Comment cannot be empty.');

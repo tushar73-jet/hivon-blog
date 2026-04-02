@@ -14,8 +14,15 @@ async function generateSummary(body) {
   console.log('DEBUG [AI Summary]: Starting summary generation for content length:', body.length);
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // ⏱ 20s timeout (Fix Gap #3)
+
+    // Truncate to prevent token limit issues (Fix Gap #8)
+    const truncatedBody = body.substring(0, 5000);
+
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
@@ -30,7 +37,7 @@ async function generateSummary(body) {
           },
           {
             role: 'user',
-            content: `Here is the post content:\n${body}`,
+            content: `Here is the post content:\n${truncatedBody}`,
           },
         ],
         temperature: 0.7,
@@ -71,6 +78,10 @@ async function generateSummary(body) {
 }
 
 export async function createPostAction(title, body, imageUrl) {
+  // 🔐 Input Validation (Fix Gap #4)
+  if (!title || title.length > 255) throw new Error("Title must be 1-255 characters");
+  if (!body || body.length > 50000) throw new Error("Body content is too long (max 50k chars)");
+
   const { user } = await requireAuthorOrAdmin();
   const summary = await generateSummary(body);
   

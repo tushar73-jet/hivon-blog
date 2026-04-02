@@ -3,6 +3,13 @@ import { createClient } from './client';
 export async function uploadImage(file) {
   if (!file || file.size === 0) return null;
 
+  // 🛡 Server-side Validation (Fix Gap #5)
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB limit
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  
+  if (file.size > MAX_SIZE) throw new Error('File is too large (max 5MB)');
+  if (!ALLOWED_TYPES.includes(file.type)) throw new Error('Invalid file type. Only JPG, PNG, WEBP, and GIF are allowed.');
+
   const supabase = createClient();
   
   const fileExt = file.name.split('.').pop() || 'jpg';

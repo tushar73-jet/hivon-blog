@@ -20,7 +20,8 @@ export default async function SinglePostPage({ params }) {
     .from('comments')
     .select('*, users(name)')
     .eq('post_id', id)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(50); // 📦 Pagination (Fix Gap #10)
 
   const { user, role } = await getUserAndRole();
   const isAuthor = user?.id === post?.author_id;

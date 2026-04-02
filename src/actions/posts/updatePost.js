@@ -31,7 +31,6 @@ export async function updatePostAction(postId, updates) {
       body: updates.body,
       image_url: updates.imageUrl,
       summary: updates.summary,
-      updated_at: new Date().toISOString()
     })
     .eq('id', postId)
     .select()

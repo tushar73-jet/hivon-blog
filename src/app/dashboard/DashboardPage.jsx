@@ -19,7 +19,9 @@ export default async function DashboardPage() {
     postsQuery = postsQuery.eq('author_id', user.id);
   }
 
-  const { data: posts, error: postsError } = await postsQuery.order('created_at', { ascending: false });
+  const { data: posts, error: postsError } = await postsQuery
+    .order('created_at', { ascending: false })
+    .limit(100); // 📦 Pagination (Fix Gap #11)
 
   // 👥 FETCH USERS (Admins Only)
   let users = [];

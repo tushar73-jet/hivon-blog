@@ -15,8 +15,21 @@ CREATE TABLE public.posts (
   image_url text,
   summary text,
   author_id uuid references public.users(id) not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+CREATE OR REPLACE FUNCTION handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_posts_updated
+  BEFORE UPDATE ON public.posts
+  FOR EACH ROW EXECUTE PROCEDURE handle_updated_at();
 
 CREATE TABLE public.comments (
   id uuid default gen_random_uuid() primary key,

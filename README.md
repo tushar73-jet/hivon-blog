@@ -6,7 +6,7 @@ An advanced, full-stack blogging platform built for the **Hivon Automations Inte
 
 ## 🚀 Features
 
--   **AI Power:** Automatic ~200-word summaries generated for every new article using **Groq (Llama 3)**.
+-   **AI Power:** Automatic ~200-word summaries generated for every new article using **Google Gemini AI (1.5 Flash)**.
 -   **Role-Based Access Control (RBAC):**
     -   **Viewer:** Can read posts, view summaries, and comment.
     -   **Author:** Can create and edit their *own* articles.
@@ -25,7 +25,7 @@ An advanced, full-stack blogging platform built for the **Hivon Automations Inte
 -   **Frontend/Backend:** Next.js (App Router)
 -   **Authentication:** Supabase Auth
 -   **Database:** Supabase (Postgres)
--   **AI Engine:** Groq API (Llama 3) for summaries.
+-   **AI Engine:** Google Gemini AI API (1.5 Flash) for summaries.
 -   **Styling:** Tailwind CSS (Modern Vanilla Config)
 
 ---
@@ -48,7 +48,7 @@ An advanced, full-stack blogging platform built for the **Hivon Automations Inte
     ```env
     NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
-    GROQ_API_KEY=your_groq_api_key
+    GOOGLE_AI_API_KEY=your_google_ai_api_key
     ```
 
 4.  **Run Development Server:**
@@ -67,7 +67,7 @@ An advanced, full-stack blogging platform built for the **Hivon Automations Inte
 
 ### 2. Implementation Logic
 -   **Authentication Flow:** Used a custom `requireAuthorOrAdmin` utility that checks roles on the server side *before* any action is executed.
--   **Post Creation Logic:** When a post is saved, the body is sent to the Groq API. If the API fails, the post is still saved, but a "failed" notice is stored to prevent user data loss while ensuring the UI doesn't crash.
+-   **Post Creation Logic:** When a post is saved, the body is sent to the Google Gemini API. If the API fails, the post is still saved, but a "failed" notice is stored to prevent user data loss while ensuring the UI doesn't crash.
 -   **SOLID Principles:** The project follows strict **Single Responsibility** (separate action files) and **Dependency Inversion** (Supabase client abstraction).
 
 ### 3. Key Bug Resolution: The "Mac Lag" Issue

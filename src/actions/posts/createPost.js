@@ -4,10 +4,10 @@ import { createClient } from '@/utils/supabase/server';
 import { requireAuthorOrAdmin } from '@/utils/auth';
 
 async function generateSummary(body) {
-  const apiKey = process.env.GROQ_API_KEY?.trim();
+  const apiKey = process.env.GOOGLE_AI_API_KEY?.trim();
 
   if (!apiKey) {
-    console.error('DEBUG [AI Summary]: GROQ_API_KEY is missing from process.env. Please check your .env.local file.');
+    console.error('DEBUG [AI Summary]: GOOGLE_AI_API_KEY is missing from process.env. Please check your .env.local file.');
     return null;
   }
 
@@ -15,65 +15,67 @@ async function generateSummary(body) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // ⏱ 20s timeout (Fix Gap #3)
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // ⏱ 20s timeout
 
-    // Truncate to prevent token limit issues (Fix Gap #8)
-    const truncatedBody = body.substring(0, 5000);
+    // Truncate to prevent token limit issues
+    const truncatedBody = body.substring(0, 10000); 
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
       method: 'POST',
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert copywriter. Write a detailed, engaging summary of the following blog post. The summary must be approximately 200 words in length.',
-          },
+        contents: [
           {
             role: 'user',
-            content: `Here is the post content:\n${truncatedBody}`,
+            parts: [
+              {
+                text: `Summarize the following blog post. 
+- Length: Around 200 words. 
+- Tone: Professional and engaging.
+- Requirement: Provide a thorough, comprehensive paragraph. Do NOT use introductory phrases like "This post is about" or wrap the response in quotes.
+
+Post content:
+${truncatedBody}`,
+              },
+            ],
           },
         ],
-        temperature: 0.7,
-        max_tokens: 512,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        },
       }),
       cache: 'no-store',
     });
 
-    const rawText = await response.text();
-    console.log('DEBUG [AI Summary]: Raw response from Groq received.');
-
-    let json = null;
-    try {
-      json = rawText ? JSON.parse(rawText) : null;
-    } catch (parseError) {
-      console.error('DEBUG [AI Summary]: Failed to parse JSON response.', rawText);
-      return null;
-    }
+    const data = await response.json();
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.error('DEBUG [AI Summary]: HTTP ERROR', response.status);
-      return `AI Summary Error: HTTP ${response.status}`;
+      console.error('DEBUG [AI Summary]: HTTP ERROR', response.status, data);
+      return `AI Summary Error: HTTP ${response.status} - ${data.error?.message || 'Unknown error'}`;
     }
 
-    const generatedSummary = json?.choices?.[0]?.message?.content?.trim();
+    const generatedSummary = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!generatedSummary) {
-      console.error('DEBUG [AI Summary]: No summary content found in the response.', json);
-      return null;
+      console.error('DEBUG [AI Summary]: No summary content found in the response.', data);
+      return 'AI Summary: No summary could be generated for this content.';
     }
 
     console.log('DEBUG [AI Summary]: Summary successfully generated.');
     return generatedSummary;
   } catch (error) {
-    console.error('DEBUG [AI Summary]: AI Fetch Operation failed.', error);
-    return null;
+    if (error.name === 'AbortError') {
+      console.error('DEBUG [AI Summary]: AI Fetch Operation timed out.');
+      return 'AI Summary Error: Request timed out (20s).';
+    } else {
+      console.error('DEBUG [AI Summary]: AI Fetch Operation failed.', error);
+      return `AI Summary Error: ${error.message}`;
+    }
   }
 }
 

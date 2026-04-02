@@ -11,6 +11,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import Navbar from "@/components/Navbar";
+
 export const metadata = {
   title: "Hivon Blogging Platform",
   description: "A modern blogging platform powered by Next.js, Supabase, and AI summaries",
@@ -22,7 +24,10 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-gray-50 dark:bg-black">
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

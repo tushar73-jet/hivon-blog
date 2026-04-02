@@ -1,6 +1,9 @@
 import { createClient } from '@/utils/supabase/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { getUserAndRole } from '@/utils/auth';
+import PostCommentForm from './CommentForm';
+import CommentList from './CommentList';
 
 export default async function SinglePostPage({ params }) {
   const resolvedParams = await params;
@@ -12,6 +15,17 @@ export default async function SinglePostPage({ params }) {
     .select('*, users(name)')
     .eq('id', id)
     .single();
+
+  const { data: comments } = await supabase
+    .from('comments')
+    .select('*, users(name)')
+    .eq('post_id', id)
+    .order('created_at', { ascending: false });
+
+  const { user, role } = await getUserAndRole();
+  const isAuthor = user?.id === post?.author_id;
+  const isAdmin = role === 'admin';
+  const canEdit = isAuthor || isAdmin;
 
   if (error || !post) {
     notFound();
@@ -48,6 +62,12 @@ export default async function SinglePostPage({ params }) {
             <time dateTime={post.created_at}>
               {new Date(post.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </time>
+
+            {canEdit && (
+              <Link href={`/posts/${id}/edit`} className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors border border-gray-200 dark:border-gray-700">
+                <span className="text-sm leading-none">✏️</span> Edit Post
+              </Link>
+            )}
           </div>
 
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-8 leading-tight">
@@ -73,10 +93,27 @@ export default async function SinglePostPage({ params }) {
         </div>
       </article>
 
-      {/* Placeholder for Step 12: Comments */}
-      <div className="mt-16 border-t pt-16">
-        <h2 className="text-2xl font-bold mb-4">Comments</h2>
-        <div className="p-8 text-center bg-gray-50 dark:bg-gray-900 border border-dashed rounded-2xl text-gray-500">
+      {/* Step 12: Comments Section */}
+      <div className="mt-16 border-t dark:border-gray-800 pt-16">
+        <h2 className="text-3xl font-extrabold mb-10 tracking-tight text-gray-950 dark:text-gray-50 flex items-center gap-3">
+          <span className="p-2.5 bg-blue-50 dark:bg-blue-500/10 rounded-xl">💬</span>
+          Comments
+          <span className="ml-2 text-sm font-medium text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+            {comments?.length || 0}
+          </span>
+        </h2>
+        
+        <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 sm:p-10 shadow-sm transition-shadow">
+          <PostCommentForm postId={id} user={user} />
+          
+          <div className="mt-12">
+            <CommentList 
+              comments={comments} 
+              postId={id} 
+              currentUser={user} 
+              role={role} 
+            />
+          </div>
         </div>
       </div>
     </main>

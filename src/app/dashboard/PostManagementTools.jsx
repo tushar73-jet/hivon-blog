@@ -7,13 +7,18 @@ import ConfirmModal from '@/components/ConfirmModal';
 export default function PostManagementTools({ postId }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '' });
 
   async function performDelete() {
     try {
       setIsDeleting(true);
       await deletePostAction(postId);
     } catch (error) {
-      alert(error.message);
+      setModal({
+        isOpen: true,
+        title: 'Moderation Problem',
+        message: 'Unable to delete article: ' + error.message
+      });
       setIsDeleting(false);
     }
   }
@@ -44,6 +49,15 @@ export default function PostManagementTools({ postId }) {
         message="This action will permanently erase this article and all its community discussions. Once deleted, this information cannot be recovered."
         confirmText="Yes, delete article"
         type="danger"
+      />
+
+      <ConfirmModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        isAlert={true}
+        type="primary"
       />
     </>
   );

@@ -7,6 +7,7 @@ export default function UserRoleSwitcher({ userId, currentRole, isAdmin }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingRole, setPendingRole] = useState(null);
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '' });
   
   if (!isAdmin) return <span className="text-xs uppercase font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">{currentRole}</span>;
 
@@ -21,7 +22,11 @@ export default function UserRoleSwitcher({ userId, currentRole, isAdmin }) {
       setIsUpdating(true);
       await updateUserRoleAction(userId, pendingRole);
     } catch (err) {
-      alert(err.message);
+      setModal({
+        isOpen: true,
+        title: 'Management Problem',
+        message: 'Unable to update user role: ' + err.message
+      });
     } finally {
       setIsUpdating(false);
       setPendingRole(null);
@@ -56,6 +61,15 @@ export default function UserRoleSwitcher({ userId, currentRole, isAdmin }) {
         title="Confirm Role Update"
         message={`You are about to modify this member's access level to ${pendingRole}. This change will apply instantly across the entire platform.`}
         confirmText="Update Role"
+        type="primary"
+      />
+
+      <ConfirmModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        isAlert={true}
         type="primary"
       />
     </>

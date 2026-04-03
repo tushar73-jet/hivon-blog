@@ -3,8 +3,18 @@
 import { createClient } from '@/utils/supabase/server';
 import { requireAuthorOrAdmin } from '@/utils/auth';
 import { revalidatePath } from 'next/cache';
+import { PostSchema } from '@/lib/validation';
 
 export async function updatePostAction(postId, updates) {
+  // 🛡 Zod Validation (Premium Professional Requirement)
+  const validation = PostSchema.partial().safeParse(updates);
+
+  if (!validation.success) {
+    const firstError = validation.error.issues[0].message;
+    throw new Error(firstError);
+  }
+
+  const validated = validation.data;
   const { user, role } = await requireAuthorOrAdmin();
   const supabase = await createClient();
 
@@ -27,10 +37,10 @@ export async function updatePostAction(postId, updates) {
   const { data, error: updateError } = await supabase
     .from('posts')
     .update({
-      title: updates.title,
-      body: updates.body,
-      image_url: updates.imageUrl,
-      summary: updates.summary,
+      title: validated.title,
+      body: validated.body,
+      image_url: validated.imageUrl,
+      summary: validated.summary,
     })
     .eq('id', postId)
     .select()

@@ -3,16 +3,22 @@
 import { createClient } from '@/utils/supabase/server';
 import { requireAuth } from '@/utils/auth';
 import { revalidatePath } from 'next/cache';
+import { CommentSchema } from '@/lib/validation';
 
 export async function addCommentAction(postId, commentText) {
+  // 🛡 Zod Validation (Premium Professional Requirement)
+  const validation = CommentSchema.safeParse({ commentText });
+  
+  if (!validation.success) {
+    const firstError = validation.error.issues[0].message;
+    throw new Error(firstError);
+  }
+
+  const validatedText = validation.data.commentText;
   const { user, role } = await requireAuth();
   
   if (!role) {
     throw new Error('You must have a valid account to comment.');
-  }
-  
-  if (!commentText || commentText.trim().length === 0) {
-    throw new Error('Comment cannot be empty.');
   }
 
   const supabase = await createClient();
@@ -22,7 +28,7 @@ export async function addCommentAction(postId, commentText) {
     .insert([{
       post_id: postId,
       user_id: user.id,
-      comment_text: commentText.trim()
+      comment_text: validatedText
     }])
     .select('*, users(name)')
     .single();

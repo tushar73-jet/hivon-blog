@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { requireAuthorOrAdmin } from '@/utils/auth';
 import { revalidatePath } from 'next/cache';
+import { PostSchema } from '@/lib/validation';
 
 async function generateSummary(body) {
   const apiKey = process.env.GOOGLE_AI_API_KEY?.trim();
@@ -100,22 +101,25 @@ ${truncatedBody}`,
 }
 
 export async function createPostAction(title, body, imageUrl) {
-  // 🔐 Input Validation (Fix Gap #4)
-  if (!title || title.length > 255) throw new Error("Title must be 1-255 characters");
-  if (!body || body.length > 50000) throw new Error("Body content is too long (max 50k chars)");
+  // 🛡 Zod Validation (Premium Professional Requirement)
+  const validation = PostSchema.safeParse({ title, body, imageUrl });
+  
+  if (!validation.success) {
+    const firstError = validation.error.issues[0].message;
+    throw new Error(firstError);
+  }
 
+  const validated = validation.data;
   const { user } = await requireAuthorOrAdmin();
-  const summary = await generateSummary(body);
-
-  console.log('DEBUG [createPostAction]: Summary status:', summary ? 'SUCCESS' : 'FAILED/EMPTY');
+  const summary = await generateSummary(validated.body);
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('posts')
     .insert([{
-      title,
-      body,
-      image_url: imageUrl,
+      title: validated.title,
+      body: validated.body,
+      image_url: validated.imageUrl,
       summary,
       author_id: user.id
     }])

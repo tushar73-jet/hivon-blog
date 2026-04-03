@@ -6,6 +6,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 export default function CommentList({ comments, postId, currentUser, role }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingId, setPendingId] = useState(null);
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '' });
   const isAdmin = role === 'admin';
 
   async function performDelete() {
@@ -13,7 +14,11 @@ export default function CommentList({ comments, postId, currentUser, role }) {
     try {
       await deleteCommentAction(pendingId, postId);
     } catch (err) {
-      alert(err.message);
+      setModal({
+        isOpen: true,
+        title: 'Moderation Problem',
+        message: 'Unable to delete comment: ' + err.message
+      });
     } finally {
       setPendingId(null);
     }
@@ -49,7 +54,7 @@ export default function CommentList({ comments, postId, currentUser, role }) {
                 </span>
                 <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
                 <time className="text-xs text-gray-400 font-medium tracking-tight uppercase">
-                  {new Date(comment.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  {new Date(comment.created_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}
                 </time>
                 
                 {(isAdmin || currentUser?.id === comment.user_id) && (
@@ -81,6 +86,15 @@ export default function CommentList({ comments, postId, currentUser, role }) {
         message="This will permanently remove this contribution from the discussion. This action is irreversible."
         confirmText="Delete Comment"
         type="danger"
+      />
+
+      <ConfirmModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        isAlert={true}
+        type="primary"
       />
     </>
   );

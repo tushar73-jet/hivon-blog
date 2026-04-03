@@ -37,14 +37,14 @@ export default async function SinglePostPage({ params }) {
       <Link href="/" className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mb-8">
         ← Back to all posts
       </Link>
-      
+
       <article className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm">
         {/* Featured Image */}
         {post.image_url && (
           <div className="w-full aspect-[21/9] bg-gray-100 dark:bg-gray-800 relative">
-            <img 
-              src={post.image_url} 
-              alt={post.title} 
+            <img
+              src={post.image_url}
+              alt={post.title}
               className="object-cover w-full h-full"
             />
           </div>
@@ -87,10 +87,10 @@ export default async function SinglePostPage({ params }) {
           )}
 
           {/* Main Body Content */}
-          <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
-            {/* If body matches generic markdown, a library like react-markdown would be used here. For now, white-space formatting */}
-            <div className="whitespace-pre-wrap">{post.body}</div>
-          </div>
+          <div 
+            className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 post-content"
+            dangerouslySetInnerHTML={{ __html: post.body }}
+          />
         </div>
       </article>
 
@@ -103,16 +103,16 @@ export default async function SinglePostPage({ params }) {
             {comments?.length || 0}
           </span>
         </h2>
-        
+
         <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 sm:p-10 shadow-sm transition-shadow">
           <PostCommentForm postId={id} user={user} />
-          
+
           <div className="mt-12">
-            <CommentList 
-              comments={comments} 
-              postId={id} 
-              currentUser={user} 
-              role={role} 
+            <CommentList
+              comments={comments}
+              postId={id}
+              currentUser={user}
+              role={role}
             />
           </div>
         </div>

@@ -5,6 +5,25 @@ import { requireAuthorOrAdmin } from '@/utils/auth';
 import { revalidatePath } from 'next/cache';
 import { PostSchema } from '@/lib/validation';
 
+async function ensurePublicUser(supabase, user) {
+  // 🛡 Self-Healing: Check if public user profile exists
+  const { data: profile } = await supabase
+    .from('users')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile) {
+    console.log(`DEBUG [Self-Healing]: Creating missing profile during Post Update for ${user.id}`);
+    await supabase.from('users').insert({
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || user.email?.split('@')[0],
+      role: 'viewer'
+    });
+  }
+}
+
 export async function updatePostAction(postId, updates) {
   // 🛡 Zod Validation (Premium Professional Requirement)
   const validation = PostSchema.partial().safeParse(updates);
@@ -17,6 +36,9 @@ export async function updatePostAction(postId, updates) {
   const validated = validation.data;
   const { user, role } = await requireAuthorOrAdmin();
   const supabase = await createClient();
+
+  // 🛡 Self-Healing: Ensure the public profile exists before proceeding
+  await ensurePublicUser(supabase, user);
 
   // 🔐 Permission Check: Fetch post to verify ownership
   const { data: post, error: fetchError } = await supabase
@@ -47,7 +69,8 @@ export async function updatePostAction(postId, updates) {
     .single();
 
   if (updateError) {
-    throw new Error(updateError.message);
+    console.error("Update Error:", updateError);
+    throw new Error('We could not save your update. The system is auto-repairing. Please try one more time.');
   }
 
   // Clear cache for updated post

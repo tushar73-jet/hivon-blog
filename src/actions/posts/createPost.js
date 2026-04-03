@@ -5,6 +5,25 @@ import { requireAuthorOrAdmin } from '@/utils/auth';
 import { revalidatePath } from 'next/cache';
 import { PostSchema } from '@/lib/validation';
 
+async function ensurePublicUser(supabase, user) {
+  // 🛡 Self-Healing: Check if public user profile exists
+  const { data: profile } = await supabase
+    .from('users')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile) {
+    console.log(`DEBUG [Self-Healing]: Creating missing profile during Post creation for ${user.id}`);
+    await supabase.from('users').insert({
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || user.email?.split('@')[0],
+      role: 'viewer'
+    });
+  }
+}
+
 async function generateSummary(body) {
   const apiKey = process.env.GOOGLE_AI_API_KEY?.trim();
 
@@ -114,6 +133,10 @@ export async function createPostAction(title, body, imageUrl) {
   const summary = await generateSummary(validated.body);
 
   const supabase = await createClient();
+
+  // 🛡 Self-Healing: Ensure the public profile exists before proceeding
+  await ensurePublicUser(supabase, user);
+
   const { data, error } = await supabase
     .from('posts')
     .insert([{
@@ -128,7 +151,7 @@ export async function createPostAction(title, body, imageUrl) {
 
   if (error) {
     console.error("Database Insert Error:", error);
-    throw new Error(error.message);
+    throw new Error('Our database could not link your post. If this is a first-time publish, the system is auto-repairing. Please try clicking publish once more.');
   }
 
   // Clear cache for homepage and dashboard

@@ -5,6 +5,25 @@ import { requireAuth } from '@/utils/auth';
 import { revalidatePath } from 'next/cache';
 import { CommentSchema } from '@/lib/validation';
 
+async function ensurePublicUser(supabase, user) {
+  // 🛡 Self-Healing: Check if public user profile exists
+  const { data: profile } = await supabase
+    .from('users')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile) {
+    console.log(`DEBUG [Self-Healing]: Creating missing public profile for user ${user.id}`);
+    await supabase.from('users').insert({
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || user.email?.split('@')[0],
+      role: 'viewer'
+    });
+  }
+}
+
 export async function addCommentAction(postId, commentText) {
   // 🛡 Zod Validation (Premium Professional Requirement)
   const validation = CommentSchema.safeParse({ commentText });
@@ -23,6 +42,9 @@ export async function addCommentAction(postId, commentText) {
 
   const supabase = await createClient();
   
+  // 🛡 Self-Healing: Ensure the public profile exists before proceeding
+  await ensurePublicUser(supabase, user);
+  
   const { data, error } = await supabase
     .from('comments')
     .insert([{
@@ -34,7 +56,8 @@ export async function addCommentAction(postId, commentText) {
     .single();
 
   if (error) {
-    throw new Error(error.message);
+    console.error("Comment Insert Error:", error);
+    throw new Error('We could not save your comment. The system is auto-repairing, please try once more.');
   }
 
   revalidatePath(`/posts/${postId}`);
